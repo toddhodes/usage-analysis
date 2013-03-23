@@ -16,6 +16,15 @@ generate them via the adb logcat wrapper
 
    ./bin/logcat --network --re .*DATA.* 
 
+then run the script:
+```shell
+$ bin/count-data.py
+[options: {'filespec': '*.DATA', 'grep': 'getAssets', 'dirname': './data'} ]
+bytes total: 2063219
+max rtt:  11396 com.wavemarket.finder.core.v2.api.ContactsService.getContacts_TAuthToken_long()
+largest:  59901 getApplications
+occurrences of 'getAssets': 18
+```
 
 approach is based on the python generators tutorial: http://www.dabeaz.com/generators-uk/
 
