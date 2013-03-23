@@ -1,0 +1,105 @@
+#!/usr/bin/perl
+
+#
+# this is just an args wrapper around logcat-colorize
+#
+
+use warnings;
+use strict;
+
+use Cwd 'abs_path';
+use English;
+use File::Basename;
+
+
+my $this_file = Cwd::abs_path($PROGRAM_NAME);
+my $this_abs_dir = File::Basename::dirname($this_file);
+
+my $script;
+$script = $this_abs_dir . '/logcat-colorize';
+if (! -x $script) {
+   die "Can't find logcat-colorize script."
+}
+
+
+# these are LL's; substitute use your own
+#
+my $filterSpec = "LL:V QAtools:I PackageManager:V ActivityManager:V IntentResolver:V *:S "
+                . "ControlsAndInsights:V SprintMobileControls:V VerizonCNI:V ATTSmartLimits:V  "
+                . "ControlsAndInsights.JsonApi:V SprintMobileControls.JsonApi:V VerizonCNI.JsonApi:V ATTSmartLimits.JsonApi:V  "
+                . "SprintDriveFirst:V FakeSprintZone:V "
+                . "Hessdroid:V "
+                . "EZTracker:V GAV2:V "
+                . "StrictMode:V System.out:V System.err:V";
+
+my $args = "";
+while ( my $arg = shift @ARGV ) {
+   if ( $arg eq '--help' ) {
+      my $msg = qq/usage: \n/;
+      $msg .= qq/               [--color]       (default) \n/;
+      $msg .= qq/               [--nocolor]     use raw 'adb logcat' not 'logcat-colorize' \n/;
+      $msg .= qq/               [--nosys]       don't log stdout and stderr \n/;
+      $msg .= qq/               [--nopkg]       don't log PackageManager \n/;
+      $msg .= qq/               [--noam]        don't log ActivityManager \n/;
+      $msg .= qq/               [--nonetwork]   don't log network requests \n/;
+      $msg .= qq/               [--network]     log only network requests \n/;
+      $msg .= qq/               [--warn]        log only warnings or above \n/;
+      $msg .= qq/  and if using color:\n/;
+      $msg .= qq/               [--re REGEX]  show only lines that match the regex\n/;
+      $msg .= qq/               [--ignore COMMA-SEPARATED-STRINGS] ignore any line matching one of the list entries \n/;
+      die $msg;
+   } elsif ( $arg eq '--color' ) {
+      # default
+   } elsif ( $arg eq '--nocolor' ) {
+      $script = "adb logcat";
+   } elsif ( $arg eq '--nosys' ) {
+      $filterSpec =~ s/System.out:V System.err:V//;     
+   } elsif ( $arg eq '--noam' ) {
+      $filterSpec =~ s/ActivityManager:V//;     
+   } elsif ( $arg eq '--nopkg' ) {
+      $filterSpec =~ s/PackageManager:V//;     
+   } elsif ( $arg eq '--nonetwork' ) {
+      $filterSpec =~ s/Hessdroid:V//;     
+      $filterSpec =~ s/ControlsAndInsights.JsonApi:V SprintMobileControls.JsonApi:V VerizonCNI.JsonApi:V ATTSmartLimits.JsonApi:V//;     
+   } elsif ( $arg eq '--network' ) {
+      $filterSpec = "Hessdroid:V "
+                    . "ControlsAndInsights.JsonApi:V SprintMobileControls.JsonApi:V VerizonCNI.JsonApi:V ATTSmartLimits.JsonApi:V "
+                    . "*:S";
+   } elsif ( $arg eq '--nobig' ) {
+      $args = $args . " " .  '--ignore Hessian\ resp:\ byte[],Hessian\ resp:\ [ArrayList],Hessian\ resp:\ [TAsset]';
+   } elsif ( $arg eq '--quiet' ) {
+      $filterSpec =~ s/System.out:V System.err:V//;
+      $args = $args . " " .  '--ignore "Hessian\ resp:\ byte[]",FetchChildService,AndroidUtil,HorizontalPager,FetchChildUIReceiver,ChildControlState.refreshView,DisplayUtil,ResponseGenerator.getAssetById,ControlsAndInsight.refreshCard';
+   } elsif ( $arg eq '--warn' ) {
+      $filterSpec =~ s/:V/:W/g;     
+   } else {
+      $args = $args . " " . $arg;
+   }
+}
+$script = $script . " " . $args;
+#if ($#ARGV > 0) { $script = $script . " " . join(' ',@ARGV); }
+
+my $cmd = $script . " -v threadtime " . $filterSpec;
+
+print $cmd, "\n";
+
+# copied and simplified from WM::System::safe_system()
+
+my $return_value = system($cmd);
+if ($return_value != 0) {
+   # from the docs for system in perlfunc(1)
+   my $exit_value = $CHILD_ERROR >> 8;
+   my $signal_num = $CHILD_ERROR & 127;
+   my $dumped_core = $CHILD_ERROR & 128;
+   my $msg = qq/System call "$cmd" failed.  Return value = $CHILD_ERROR , Exit value = $exit_value , Signal number = $signal_num , Dumped core = $dumped_core , Errno = $OS_ERROR/;
+   die $msg;
+}
+
+##
+## Local Variables:
+##   mode: Perl
+##   perl-indent-level: 3
+##   tab-width: 3
+##   indent-tabs-mode: nil
+## End:
+##

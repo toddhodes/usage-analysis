@@ -13,10 +13,10 @@ provides total bytes sum, max rtt, largest single, list of large (>100K) transfe
 and occurrances of a given key method (eg, background update loop)
 
 
-at LL, generate them via our adb logcat wrapper
+generate them via the adb logcat wrapper
 
    ./bin/logcat --network --re .*DATA.* 
 
 
-python generators tutorial: http://www.dabeaz.com/generators-uk/
+approach is based on the python generators tutorial: http://www.dabeaz.com/generators-uk/
 
