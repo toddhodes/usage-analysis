@@ -14,7 +14,9 @@ and occurrances of a given key method (eg, background update loop)
 
 generate them via the adb logcat wrapper
 
-   ./bin/logcat --network --re .*DATA.* 
+```shell
+$ ./bin/logcat --network --re .*DATA.* 
+```
 
 then run the script:
 ```shell
