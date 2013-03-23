@@ -1,7 +1,7 @@
 usage-analysis
 ==============
 
-'''handset to server RPC data usage analysis'''
+_handset to server RPC data usage analysis_
 
 use this to parse and tuple-ize a set of data files containing json/hessian api DATA loglines
 
