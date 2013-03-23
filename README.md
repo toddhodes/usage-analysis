@@ -21,7 +21,7 @@ then run the script:
 $ bin/count-data.py
 [options: {'filespec': '*.DATA', 'grep': 'getAssets', 'dirname': './data'} ]
 bytes total: 2063219
-max rtt:  11396 com.wavemarket.finder.core.v2.api.ContactsService.getContacts_TAuthToken_long()
+max rtt:  11396 ContactsService.getContacts_TAuthToken_long()
 largest:  59901 getApplications
 occurrences of 'getAssets': 18
 ```
