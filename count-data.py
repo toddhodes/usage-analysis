@@ -16,6 +16,8 @@ import sys, os, fnmatch
 import gzip, bz2
 import re
 
+
+# insert to debug
 def trace(source):
    for item in source:
       print item
@@ -57,22 +59,14 @@ def lines_from_dir(filepat, dirname):
    lines = gen_cat(files)
    return lines
 
-
-# sum bytes transferred; grep on entire line, parse via rsplit()
-def sum_bytes_loglines(pattern, lines):
-   patlines = gen_grep(pattern, lines)
-   bytecolumn = (line.rsplit(None,1)[1] for line in patlines)
-   bytes = (int(x) for x in bytecolumn if x != '-')
-   print "bytes total:", sum(bytes)
-
-
 def field_map(dictseq,name,func):
    for d in dictseq:
       d[name] = func(d[name])
       yield d
 
-# parse DATA log lines into dicts
-# 03-22 15:24:07.599 10708             Hessdroid  D  DATA Sent:698 Recv:999 RTT:2900 Rcode:200 meth:com.wavemarket.finder.core.v2.api.AuthService.auth_TCredentialContainer_string()
+
+# parse yielded DATA log lines tuples, insert into dicts, return them
+#
 def data_logs_to_dict(lines):
    logpats = r'(\S+) (\S+) (\S+) *(\S+)  [VDIWE]  DATA Sent:(\S+) Recv:(\S+) RTT:(\S+) Rcode:(\S+) meth:(\S+)'
    logpat = re.compile(logpats)
@@ -88,6 +82,13 @@ def data_logs_to_dict(lines):
    return log
 
 
+# get each line from the /file(s) and tuple-ize them
+def gen_dict(options):
+   loglines = lines_from_dir(options.filespec, options.dirname)
+   return data_logs_to_dict(loglines)
+
+
+#
 # tuple-processors
 #
 
@@ -109,6 +110,8 @@ def count_occurances(methodname, dicts):
 
 
 
+
+
 # main
 #
 def main(args=sys.argv):
@@ -123,37 +126,25 @@ def main(args=sys.argv):
                      action="store", type="string", dest="grep",
                      default="getAssets")
    (options, args) = parser.parse_args(args)
-   print "options:", options
+   print "[options:", options, "]"
 
 
+   ## run tuple processors; due to generators, have to load each time
 
-   ## tuple-ize, work with tuples: easy
-
-   loglines = lines_from_dir(options.filespec, options.dirname)
-   dicts = data_logs_to_dict(loglines)
+   dicts = gen_dict(options)
    sum_bytes(dicts)
 
-   loglines = lines_from_dir(options.filespec, options.dirname)
-   dicts = data_logs_to_dict(loglines)
+   dicts = gen_dict(options)
    print_maxrtt(dicts)
 
-   loglines = lines_from_dir(options.filespec, options.dirname)
-   dicts = data_logs_to_dict(loglines)
+   dicts = gen_dict(options)
    print_largest(dicts)
 
-   loglines = lines_from_dir(options.filespec, options.dirname)
-   dicts = data_logs_to_dict(loglines)
+   dicts = gen_dict(options)
    print_large_transfers(dicts)
 
-   loglines = lines_from_dir(options.filespec, options.dirname)
-   dicts = data_logs_to_dict(loglines)
-   print "Occurrences of '"+options.grep+ "':", count_occurances(options.grep, dicts)
-
-
-   ## sum w/ our rsplit parser: fast
-   #loglines = lines_from_dir(options.filespec, options.dirname)
-   #sum_bytes_loglines(options.grep, loglines)
-
+   dicts = gen_dict(options)
+   print "occurrences of '"+options.grep+ "':", count_occurances(options.grep, dicts)
 
 
 if __name__ == '__main__':
