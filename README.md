@@ -12,7 +12,7 @@ provides total bytes sum, max rtt, largest single, list of large (>100K) transfe
 and occurrances of a given key method (eg, background update loop)
 
 
-generate them via the adb logcat wrapper
+one way to do might be to generate them via some kind of adb logcat wrapper, ala
 
 ```shell
 $ ./bin/logcat --network --re .*DATA.* 
