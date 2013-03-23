@@ -1,7 +1,7 @@
 usage-analysis
 ==============
 
-_handset to server RPC data usage analysis_
+_handset-to-server RPC data usage analysis_
 
 use this to parse and tuple-ize a set of data files containing json/hessian api DATA loglines
 
@@ -18,13 +18,16 @@ provides some key stats such as:
 * occurrance count of a given method (eg, background update loop)
 
 
-one way to do might be to generate them via some kind of adb logcat wrapper, ala
+one way to do this is to generate the DATA via some kind of adb logcat wrapper, ala
 
 ```shell
 $ ./bin/logcat --network --re .*DATA.* 
 ```
 
-then run the script:
+regardless, once you have the data....
+
+run the script:
+
 ```shell
 $ bin/count-data.py
 [options: {'filespec': '*.DATA', 'grep': 'getAssets', 'dirname': './data'} ]
